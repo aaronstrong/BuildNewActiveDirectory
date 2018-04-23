@@ -38,3 +38,5 @@ Install-ADDSForest `
 -SysvolPath "C:\Windows\SYSVOL" `
 -SafeModeAdministratorPassword $safeModeAdminstratorPassword `
 -Force:$true
+
+Restart-Computer
