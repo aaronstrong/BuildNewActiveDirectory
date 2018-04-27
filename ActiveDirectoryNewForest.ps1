@@ -3,15 +3,18 @@
 Create new forest with the parameters defined under Variables
 
 #>
-# Variables
+# VARIABLES #
 $domainName = "contoso.local"
 $netbiosName = "contoso"
 $safeModeAdminstratorPassword = ConvertTo-SecureString 'VMware1!' -AsPlainText -Force
-$featureLogPath = "C:\log\featurelog.txt"
+$logpath = "C:\log\log.txt"
 $domainMode = "Win2012R2"
 $forestMode = "Win2012R2"
 
-New-Item $featureLogPath -ItemType file -Force
+# check if log folder exists
+if(!(Test-Path $logpath)){    New-item -ItemType File -Path $logpath -ErrorAction Ignore -Force }
+
+New-Item $logpath -ItemType file -Force
 
 # Install Active Directory Roles
 Start-Job -Name addfeature -ScriptBlock {
@@ -21,10 +24,9 @@ Add-WindowsFeature -Name "gpmc" -IncludeAllSubFeature -IncludeManagementTools
 }
 Wait-Job -Name addfeature
 
-Get-WindowsFeature | Where-Object installed >> $featureLogPath
+Get-WindowsFeature | Where-Object installed >> $logpath
 
 # Install new Active Directory Forest
-
 Import-Module ADDSDeployment
 
 Install-ADDSForest `

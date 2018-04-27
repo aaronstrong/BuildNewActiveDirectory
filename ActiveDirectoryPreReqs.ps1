@@ -1,30 +1,29 @@
 <#
 
-This will take the computer it runs on and change the IP address, Default Gateway,
-and computer name
+This will take the computer it runs on and change the IP address, Default Gateway, and computer name.
+
+Tested with only 1 NIC
 
 #>
 
-$ipaddress = "192.168.110.50"
-$ipprefix = "24"
-$ipg = "192.168.110.1"
+# VARIABLES #
+$ipaddress = "192.168.110.50"   # ip address
+$ipprefix = "24"                # subnet
+$ipg = "192.168.110.1"          # default gateway
+$dnsip = ("192.168.110.1", "1.1.1.1") # DNS addresses
+$newname = "DC-01"              # new computer name
+$logpath = "C:\log\log.txt"
 
+
+# check if log folder exists
+if(!(Test-Path $logpath)){    New-item -ItemType File -Path $logpath -ErrorAction Ignore -Force }
+
+# change ip address
 $ipif=(Get-NetAdapter).ifindex
 New-NetIPAddress -IPAddress $ipaddress -PrefixLength $ipprefix -interfaceindex $ipif -DefaultGateway $ipg
 
-# Rename Computer
-$newname = "DC-01"
+# set DNS address
+Set-DnsClientServerAddress -InterfaceIndex $ipif -ServerAddresses $dnsip
 
-Rename-Computer -ComputerName $newname -Force
-
-# Install Features
-$featureLogPath = "C:\log\featurelog.txt"
-New-Item $featureLogPath -ItemType file -Force
-
-$addTools = "RSAT-AD-TOOLS"
-
-Add-WindowsFeature $addTools
-
-Get-WindowsFeature | Where-Object Installed >> $featureLogPath
-
-Restart-Computer
+# Restart after computer change
+Rename-Computer -NewName $newname -Force -restart
